@@ -20,6 +20,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParsePush;
+import com.parse.PushService;
+import com.parse.SaveCallback;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +47,17 @@ public class MainActivity extends Activity implements IContactListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        ParsePush.subscribeInBackground("", new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    Log.d("com.parse.push", "successfully subscribed to the broadcast channel.");
+                } else {
+                    Log.e("com.parse.push", "failed to subscribe for push", e);
+                }
+            }
+        });
 
         preferences = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
 
