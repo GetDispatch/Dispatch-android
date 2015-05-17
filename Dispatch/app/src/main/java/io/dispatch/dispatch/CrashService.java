@@ -22,6 +22,13 @@ public class CrashService extends Service {
     private boolean crashed;
 
     @Override
+    public void onDestroy() {
+        Log.d("destroy", "destroy");
+        stopped = true;
+        super.onDestroy();
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         listener = (CrashListener) intent.getExtras().get("listener");
 
@@ -31,6 +38,10 @@ public class CrashService extends Service {
 
             @Override
             public void run() {
+                if(stopped) {
+                    return;
+                }
+
                 if(!checkVelocity()) {
                     handler.postDelayed(runnable, 1000);
                     return;
@@ -52,7 +63,7 @@ public class CrashService extends Service {
 
         };
 
-        executor.schedule(task, 10, TimeUnit.SECONDS);
+        executor.schedule(task, 3, TimeUnit.SECONDS);
 
         executor.shutdown();
 
