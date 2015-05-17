@@ -38,10 +38,15 @@ public class CrashService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        listener = (CrashListener) intent.getExtras().get("listener");
+        if(intent != null) {
+            if (intent.getExtras().containsKey("listener")) {
+                listener = (CrashListener) intent.getExtras().get("listener");
+            }
 
-        //checkCrash(getApplicationContext());
-        listener.onPossibleCrash(this, ActivityManager.getActivity());
+            //checkCrash(getApplicationContext());
+
+            listener.onPossibleCrash(this, ActivityManager.getActivity());
+        }
 
         return super.onStartCommand(intent, flags, startId);
     }

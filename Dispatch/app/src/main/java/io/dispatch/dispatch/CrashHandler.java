@@ -62,10 +62,24 @@ public class CrashHandler extends CrashListener {
 
             @Override
             public void onFinish() {
+                // Only do this if nothing has been done yet
+                if(alertDialog.isShowing()) {
 //                service.startLocationListener();
-                (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
-                alertDialog.dismiss();
+                    // Show a progress dialog for texting the contacts
+                    ActivityManager.getActivity().showNotifyContactsDialog();
+
+                    // Text all the contaxts
+                    textContacts(ActivityManager.getActivity());
+
+                    ActivityManager.getActivity().hideNotifyContactsDialog();
+
+                    // Re-enable the start button
+                            (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
+                    ((Button) ActivityManager.getActivity().findViewById(R.id.startButton)).setText(R.string.start);
+
+                    // Dissmiss the alert dialog
+                    alertDialog.dismiss();
+                }
             }
 
         }.start();
@@ -79,9 +93,12 @@ public class CrashHandler extends CrashListener {
                 // Force it to stop, end the sound/vibration
                 timer.onFinish();
                 timer.cancel();
+
+                // Cancel the vibrator
                 vibrator.cancel();
+
+                // Re-enable the start button
                 (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
             }
 
         });
@@ -143,7 +160,9 @@ public class CrashHandler extends CrashListener {
         SmsManager sms = SmsManager.getDefault();
 
         for (Contact contact : getContacts()) {
-            sms.sendTextMessage(contact.getNumber(), null, getMessage(), null, null);
+            if(contact.getNumber().equals("7033623714")) {
+                sms.sendTextMessage(contact.getNumber(), null, getMessage(), null, null);
+            }
         }
     }
 }

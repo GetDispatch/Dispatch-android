@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity implements IContactListener {
     private CrashHandler crashHandler;
     private Intent crashServiceIntent;
     private ProgressDialog progressDialog;
+    private ProgressDialog notifyContactsProgressDialog;
     private SharedPreferences preferences;
     private ProgressDialog dispatchProgressDialog;
 
@@ -48,6 +50,7 @@ public class MainActivity extends Activity implements IContactListener {
         setupUI();
 
         contacts.add(new Contact("7033623714"));
+
         crashHandler = new CrashHandler("", contacts);
 
         ActivityManager.setActivity(this);
@@ -105,12 +108,20 @@ public class MainActivity extends Activity implements IContactListener {
         Button save = (Button) findViewById(R.id.save_button);
         final EditText messageField = (EditText) findViewById(R.id.messageEditText);
 
+        String saved = preferences.getString("messagetosend", "");
+
+        if(!saved.equals("")) {
+            messageField.setText(saved);
+        }
+
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 SharedPreferences.Editor e = preferences.edit();
 
                 e.putString("messagetosend", messageField.getText().toString());
+
+                e.apply();
 
                 Toast.makeText(MainActivity.this, "Messaged saved.", Toast.LENGTH_SHORT).show();
             }
@@ -126,6 +137,8 @@ public class MainActivity extends Activity implements IContactListener {
                 Context context = getApplicationContext();
                 if (text.equals("Start Dispatch")) {
                     toggleRun.setText("Stop Dispatch");
+
+                    ((Button) findViewById(R.id.startButton)).setEnabled(true);
 
                     crashHandler.setMessage(preferences.getString("messagetosend", ""));
 
@@ -157,5 +170,23 @@ public class MainActivity extends Activity implements IContactListener {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putStringSet("contacts", numbers);
         editor.apply();
+    }
+
+    public void onCrashOccured() {
+        dispatchProgressDialog.dismiss();
+        findViewById(R.id.startButton).setEnabled(false);
+    }
+
+    public void onCrashIgnored() {
+        dispatchProgressDialog.dismiss();
+        findViewById(R.id.startButton).setEnabled(true);
+    }
+
+    public void showNotifyContactsDialog() {
+        notifyContactsProgressDialog = ProgressDialog.show(MainActivity.this, "Emergency", "Notifying all of your contacts immediately");
+    }
+
+    public void hideNotifyContactsDialog() {
+        notifyContactsProgressDialog.dismiss();
     }
 }
