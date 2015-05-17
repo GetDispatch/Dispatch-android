@@ -1,9 +1,23 @@
 package io.dispatch.dispatch;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Service;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.util.Log;
 
 import java.util.concurrent.Executors;
@@ -17,14 +31,13 @@ import java.util.concurrent.TimeUnit;
 public class CrashService extends Service {
     private CrashListener listener;
     private Handler handler;
-    private Runnable runnable;
-    private boolean stopped;
-    private boolean crashed;
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+    private float currentSpeed=0;
+    private float pastSpeed=0;
 
     @Override
     public void onDestroy() {
-        Log.d("destroy", "destroy");
-        stopped = true;
         super.onDestroy();
     }
 
@@ -34,39 +47,6 @@ public class CrashService extends Service {
 
         handler = new Handler();
 
-        runnable = new Runnable() {
-
-            @Override
-            public void run() {
-                if(stopped) {
-                    return;
-                }
-
-                if(!checkVelocity()) {
-                    handler.postDelayed(runnable, 1000);
-                    return;
-                }
-            }
-
-        };
-
-        runnable.run();
-
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-        Runnable task = new Runnable() {
-
-            @Override
-            public void run() {
-                crashed = true;
-            }
-
-        };
-
-        executor.schedule(task, 3, TimeUnit.SECONDS);
-
-        executor.shutdown();
-
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -75,18 +55,47 @@ public class CrashService extends Service {
         return null;
     }
 
-    private boolean checkVelocity() {
+    public void checkCrash(final Context context){
+        locationManager = (LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
 
-        // Do math
+        locationListener = new LocationListener() {
 
-        if(crashed) {
-            listener.onPossibleCrash(getApplicationContext());
-        }
+            public void onLocationChanged(Location location) {
 
-        return crashed;
+                // Called when a new location is found by the network location provider.
+                Log.d("Long/Lat", location.getLatitude() + " " + location.getLongitude());
+                Log.d("Speed",location.getSpeed()+"");
+
+                currentSpeed = location.getSpeed();
+
+                if(currentSpeed - pastSpeed < -13){
+                    listener.onPossibleCrash(CrashService.this, context);
+                    stopLocationListener();
+                }
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+                Log.d("Status Changed", "has been enabled");
+            }
+
+            public void onProviderEnabled(String provider) {
+
+                Log.d("Enabled", "has been enabled");
+            }
+
+            public void onProviderDisabled(String provider) {
+                Log.d("Disabled happened", "has been enabled");
+            }
+        };
+
+        startLocationListener();
     }
 
-    public void setStopped(boolean stopped) {
-        this.stopped = stopped;
+    public void stopLocationListener() {
+        locationManager.removeUpdates(locationListener);
+    }
+
+    public void startLocationListener() {
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
     }
 }

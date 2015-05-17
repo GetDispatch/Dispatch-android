@@ -2,6 +2,7 @@ package io.dispatch.dispatch;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,7 +12,9 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -85,15 +88,14 @@ public class SettingsActivity extends Activity {
                 String text = toggleRun.getText().toString();
                 Context context = getApplicationContext();
 
-                if(text.equals("Start")) {
+                if (text.equals("Start")) {
                     toggleRun.setText("Stop");
 
                     crashServiceIntent = new Intent(SettingsActivity.this, CrashService.class);
                     crashServiceIntent.putExtra("listener", crashHandler);
 
                     context.startService(crashServiceIntent);
-                }
-                else if(text.equals("Stop")) {
+                } else if (text.equals("Stop")) {
                     toggleRun.setText("Start");
 
                     context.stopService(crashServiceIntent);

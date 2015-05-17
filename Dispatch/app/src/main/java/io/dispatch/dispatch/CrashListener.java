@@ -17,7 +17,7 @@ public abstract class CrashListener implements Serializable {
         this.contacts = contacts;
     }
 
-    public abstract void onPossibleCrash(Context context);
+    public abstract void onPossibleCrash(CrashService service, Context context);
 
     public List<Contact> getContacts() {
         return contacts;
