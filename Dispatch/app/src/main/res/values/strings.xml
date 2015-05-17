@@ -6,7 +6,8 @@
     <string name="no">No</string>
     <string name="import_contacts">Import Contacts</string>
     <string name="message_to_send">Message To Send</string>
-    <string name="save">Save</string>
-    <string name="stop">Save</string>
-    <string name="start">Start</string>
+    <string name="save">Save Message</string>
+    <string name="stop">Stop Dispatch</string>
+    <string name="start">Start Dispatch</string>
+
 </resources>

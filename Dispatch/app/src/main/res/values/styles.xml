@@ -1,11 +1,12 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.DarkActionBar">
+    <style name="AppTheme" parent="android:Theme.DeviceDefault.Light.NoActionBar.Fullscreen">
         <!-- Customize your theme here. -->
     </style>
 
     <color name="gray">#212121</color>
     <color name="lightGray">#585759</color>
     <color name="white">#fff</color>
+    <color name="blue">#2D6A81</color>
 </resources>

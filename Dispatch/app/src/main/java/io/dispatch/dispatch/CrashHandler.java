@@ -3,8 +3,11 @@ package io.dispatch.dispatch;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Location;
@@ -33,8 +36,9 @@ public class CrashHandler extends CrashListener {
     private CountDownTimer timer;
     private Vibrator vibrator;
     private AudioManager audioManager;
+    private long vibrateTimeLeft;
 
-    public CrashHandler(final String message, final List<Contact> contacts) {
+    public CrashHandler(String message, final List<Contact> contacts) {
         super(message, contacts);
     }
 
@@ -103,7 +107,7 @@ public class CrashHandler extends CrashListener {
 
             @Override
             public void onTick(long millisUntilFinished) {
-
+                vibrateTimeLeft = millisUntilFinished;
             }
 
             @Override
@@ -117,6 +121,22 @@ public class CrashHandler extends CrashListener {
         // Vibrate the phone
         vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         vibrator.vibrate(15000);
+
+        BroadcastReceiver vibrateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                // Cancel and resume the vibrator at how much time is left
+                if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+                    vibrator.cancel();
+                    vibrator.vibrate(vibrateTimeLeft);
+                }
+            }
+        };
+
+        // Register
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        context.registerReceiver(vibrateReceiver, filter);
     }
 
     private void textContacts(Context context) {

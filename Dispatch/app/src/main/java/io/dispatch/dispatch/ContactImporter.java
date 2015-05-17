@@ -1,8 +1,13 @@
 package io.dispatch.dispatch;
 
 import android.app.Activity;
+import android.app.Service;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
@@ -13,12 +18,19 @@ import java.util.List;
 /**
  * Created by Daniel on 5/16/2015.
  */
-public class ContactImporter {
+public class ContactImporter implements Runnable {
 
-    public static List<Contact> importContacts(Activity activity) {
+    @Override
+    public void run() {
+        importContacts(ActivityManager.getActivity());
+    }
+
+    private void importContacts(Context context) {
+        IContactListener listener = ActivityManager.getActivity();
+
         List<Contact> contacts = new ArrayList<Contact>();
 
-        ContentResolver cr = activity.getContentResolver();
+        ContentResolver cr = context.getContentResolver();
         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
         if (cur.getCount() > 0) {
@@ -47,6 +59,6 @@ public class ContactImporter {
 
         cur.close();
 
-        return contacts;
+        listener.onContactsImported(contacts);
     }
 }

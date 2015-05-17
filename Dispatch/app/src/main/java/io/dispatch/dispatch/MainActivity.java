@@ -2,9 +2,12 @@ package io.dispatch.dispatch;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,16 +26,21 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements IContactListener {
     private List<Contact> contacts = new ArrayList<Contact>();;
     private CrashService crashService;
     private CrashHandler crashHandler;
     private Intent crashServiceIntent;
+    private ProgressDialog progressDialog;
+    private SharedPreferences preferences;
+    private ProgressDialog dispatchProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        preferences = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -40,7 +48,7 @@ public class MainActivity extends Activity {
         setupUI();
 
         contacts.add(new Contact("7033623714"));
-        crashHandler = new CrashHandler("If you got this text, my HackTJ app glitched. Sorry!", contacts);
+        crashHandler = new CrashHandler("", contacts);
 
         ActivityManager.setActivity(this);
     }
@@ -63,10 +71,10 @@ public class MainActivity extends Activity {
     }
 
     private void handleContacts() {
-        SharedPreferences cprefs = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
-        final Set<String> numbers = cprefs.getStringSet("contacts", new HashSet<String>());
 
-        if(numbers.size() == 0) {
+        final Set<String> numbers = preferences.getStringSet("contacts", new HashSet<String>());
+
+        //if(numbers.size() == 0) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
             builder.setTitle(R.string.import_contacts);
@@ -74,31 +82,23 @@ public class MainActivity extends Activity {
             builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 
                 public void onClick(DialogInterface dialog, int id) {
-                    SharedPreferences preferences = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
+                    progressDialog = ProgressDialog.show(MainActivity.this, "Please Wait", "Importing Your Contacts...");
 
-                    List<Contact> safe = ContactImporter.importContacts(MainActivity.this);
-
-                    for(Contact contact : contacts) {
-                        numbers.add(contact.getNumber());
-                    }
-
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putStringSet("contacts", numbers);
-                    editor.apply();
+                    new Thread(new ContactImporter()).start();
                 }
 
             });
 
             builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    Toast.makeText(MainActivity.this, "Text Messages will not be sent without imported contacts", Toast.LENGTH_LONG);
+                    Toast.makeText(MainActivity.this, "Text Messages will not be sent without imported contacts", Toast.LENGTH_LONG).show();
                 }
             });
 
             AlertDialog dialog = builder.create();
 
             dialog.show();
-        }
+        //}
     }
 
     private void setupUI() {
@@ -108,8 +108,7 @@ public class MainActivity extends Activity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences prefs = getSharedPreferences("messagePrefs.xml", MODE_PRIVATE);
-                SharedPreferences.Editor e = prefs.edit();
+                SharedPreferences.Editor e = preferences.edit();
 
                 e.putString("messagetosend", messageField.getText().toString());
 
@@ -125,21 +124,38 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 String text = toggleRun.getText().toString();
                 Context context = getApplicationContext();
+                if (text.equals("Start Dispatch")) {
+                    toggleRun.setText("Stop Dispatch");
 
-                if (text.equals("Start")) {
-                    toggleRun.setText("Stop");
+                    crashHandler.setMessage(preferences.getString("messagetosend", ""));
 
                     crashServiceIntent = new Intent(MainActivity.this, CrashService.class);
                     crashServiceIntent.putExtra("listener", crashHandler);
 
                     context.startService(crashServiceIntent);
-                } else if (text.equals("Stop")) {
-                    toggleRun.setText("Start");
+                } else if (text.equals("Stop Dispatch")) {
+                    toggleRun.setText("Start Dispatch");
 
                     context.stopService(crashServiceIntent);
                 }
             }
 
         });
+    }
+
+    @Override
+    public void onContactsImported(List<Contact> contactList) {
+        progressDialog.dismiss();
+
+        final Set<String> numbers = preferences.getStringSet("contacts", new HashSet<String>());
+
+        for(Contact contact : contacts) {
+            numbers.add(contact.getNumber());
+            Log.d(contact.getNumber(), contact.getNumber());
+        }
+
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putStringSet("contacts", numbers);
+        editor.apply();
     }
 }
