@@ -28,6 +28,8 @@ import java.util.List;
  */
 public class CrashHandler extends CrashListener {
     private Dialog dialog;
+    private CountDownTimer timer;
+    private Vibrator vibrator;
 
     public CrashHandler(final String message, final List<Contact> contacts) {
         super(message, contacts);
@@ -59,7 +61,10 @@ public class CrashHandler extends CrashListener {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                // Force it to stop, end the sound/vibration
+                timer.onFinish();
+                timer.cancel();
+                vibrator.cancel();
             }
 
         });
@@ -78,7 +83,7 @@ public class CrashHandler extends CrashListener {
         mp.setLooping(true);
         mp.start();
 
-        new CountDownTimer(15000, 1000) {
+        timer = new CountDownTimer(15000, 1000) {
 
             @Override
             public void onTick(long millisUntilFinished) {
@@ -94,8 +99,8 @@ public class CrashHandler extends CrashListener {
         }.start();
 
         // Vibrate the phone
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(15000);
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(15000);
     }
 
     private void textContacts(Context context) {

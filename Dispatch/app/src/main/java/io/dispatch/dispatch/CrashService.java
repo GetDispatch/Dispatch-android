@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.DatabaseUtils;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Location;
@@ -30,22 +31,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class CrashService extends Service {
     private CrashListener listener;
-    private Handler handler;
     private LocationManager locationManager;
     private LocationListener locationListener;
     private float currentSpeed=0;
     private float pastSpeed=0;
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         listener = (CrashListener) intent.getExtras().get("listener");
 
-        handler = new Handler();
+        //checkCrash(getApplicationContext());
+        listener.onPossibleCrash(this, ActivityManager.getActivity());
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -68,7 +64,7 @@ public class CrashService extends Service {
 
                 currentSpeed = location.getSpeed();
 
-                if(currentSpeed - pastSpeed < -13){
+                if(true) {
                     listener.onPossibleCrash(CrashService.this, context);
                     stopLocationListener();
                 }
