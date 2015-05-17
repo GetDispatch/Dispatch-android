@@ -7,6 +7,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Vibrator;
 import android.telephony.SmsManager;
+import android.util.Log;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * Created by Daniel on 5/16/2015.
  */
 public class CrashHandler extends CrashListener {
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer mediaPlayer = new MediaPlayer();
 
     public CrashHandler(final String message, final List<Contact> contacts) {
         super(message, contacts);
@@ -27,10 +28,7 @@ public class CrashHandler extends CrashListener {
     }
 
     private void soundAlarm(Context context) {
-        Vibrator vibrator;
-
         try {
-            mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALL));
             mediaPlayer.prepare();
             mediaPlayer.setLooping(false);
@@ -51,12 +49,12 @@ public class CrashHandler extends CrashListener {
 
             mediaPlayer.start();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(e.toString(), e.toString());
         }
 
-        long[] pattern = {100, 200, 300, 400};
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE) ;
-        v.vibrate(pattern, 2);
+        // Vibrate the phone
+        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(500);
     }
 
 

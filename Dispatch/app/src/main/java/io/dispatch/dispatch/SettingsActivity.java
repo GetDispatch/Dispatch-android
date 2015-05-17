@@ -19,14 +19,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 
 public class SettingsActivity extends Activity {
-    private List<Contact> contacts;
+    private List<Contact> contacts = new ArrayList<Contact>();;
     private CrashService crashService;
+    private CrashHandler crashHandler;
+    private Intent crashServiceIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +45,7 @@ public class SettingsActivity extends Activity {
 
         builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                contacts = ContactImporter.importContacts(SettingsActivity.this);
+                ContactImporter.importContacts(SettingsActivity.this);
             }
         });
 
@@ -77,34 +81,27 @@ public class SettingsActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String text = toggleRun.getText().toString();
+                Context context = getApplicationContext();
 
                 if(text.equals("Start")) {
                     toggleRun.setText("Stop");
 
-                    Context context = getApplicationContext();
+                    crashServiceIntent = new Intent(SettingsActivity.this, CrashService.class);
+                    crashServiceIntent.putExtra("listener", crashHandler);
 
-                    List<Contact> cl = new ArrayList<Contact>();
-                    cl.add(new Contact("Daniel Christoper", "7033623714"));
-
-                    CrashListener listener = new CrashHandler("A crash has happened! Save me!", cl);
-
-                    crashService = new CrashService();
-
-                    Intent intent = new Intent(SettingsActivity.this, CrashService.class);
-                    intent.putExtra("listener", listener);
-
-                    context.startService(intent);
+                    context.startService(crashServiceIntent);
                 }
                 else if(text.equals("Stop")) {
                     toggleRun.setText("Start");
 
-                    if(crashService != null) {
-                        crashService.stopSelf();
-                    }
+                    context.stopService(crashServiceIntent);
                 }
             }
 
         });
+
+        contacts.add(new Contact("Daniel Christopher", "7033623714"));
+        crashHandler = new CrashHandler("If you got this text, my HackTJ app glitched. Sorry!", contacts);
     }
 
     @Override
