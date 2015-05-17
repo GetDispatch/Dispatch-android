@@ -21,6 +21,8 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
 
+import com.parse.ParsePush;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -43,9 +45,9 @@ public class CrashService extends Service {
                 listener = (CrashListener) intent.getExtras().get("listener");
             }
 
-            //checkCrash(getApplicationContext());
+            checkCrash(getApplicationContext());
 
-            listener.onPossibleCrash(this, ActivityManager.getActivity());
+           // listener.onPossibleCrash(this, ActivityManager.getActivity());
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -66,13 +68,23 @@ public class CrashService extends Service {
                 // Called when a new location is found by the network location provider.
                 Log.d("Long/Lat", location.getLatitude() + " " + location.getLongitude());
                 Log.d("Speed",location.getSpeed()+"");
+                Log.d("Past Speed: ", location.getSpeed() +"");
 
                 currentSpeed = location.getSpeed();
+                Log.d("Change in velocity",currentSpeed-pastSpeed + "" );
+                if(currentSpeed - pastSpeed < -5) {
+                    listener.onPossibleCrash(CrashService.this, ActivityManager.getActivity());
 
-                if(true) {
-                    listener.onPossibleCrash(CrashService.this, context);
+                    // Send push
+                    ParsePush push = new ParsePush();
+                    push.setChannel("crash");
+                    push.setMessage("A person may be hurt at " + location.getLatitude() + " latitude, " + location.getLongitude() + " longitude");
+                    push.sendInBackground();
+
                     stopLocationListener();
                 }
+
+                pastSpeed = currentSpeed;
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {

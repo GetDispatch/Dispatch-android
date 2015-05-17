@@ -9,5 +9,6 @@
     <string name="save">Save Message</string>
     <string name="stop">Stop Dispatch</string>
     <string name="start">Start Dispatch</string>
-
+    <string name="parseAppID">4vyHRiRuLwLgjPpAExGwFyqMsASenIj7NBRLtXuQ</string>
+    <string name="parseClientID">KW79RFZpsod5vNWD0iH4pZQH24zkzIPDkDU4VrEf</string>
 </resources>
