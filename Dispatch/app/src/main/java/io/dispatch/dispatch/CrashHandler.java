@@ -19,6 +19,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  * Created by Daniel on 5/16/2015.
  */
 public class CrashHandler extends CrashListener {
-    private Dialog dialog;
+    private AlertDialog alertDialog;
     private CountDownTimer timer;
     private Vibrator vibrator;
 
@@ -37,10 +38,12 @@ public class CrashHandler extends CrashListener {
 
     @Override
     public void onPossibleCrash(final CrashService service, Context context) {
+        alertDialog = new AlertDialog.Builder(context).create();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        alertDialog.setTitle("Are you in an accident?");
 
-        builder.setTitle("Are you in an accident?");
+        alertDialog.setCanceledOnTouchOutside(false);
+        alertDialog.setCancelable(false);
 
         new CountDownTimer(15000, 1000) {
 
@@ -51,13 +54,16 @@ public class CrashHandler extends CrashListener {
 
             @Override
             public void onFinish() {
-                service.startLocationListener();
-                dialog.dismiss();
+//                service.startLocationListener();
+                (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
+                alertDialog.dismiss();
             }
 
         }.start();
 
-        builder.setNeutralButton("No!", new DialogInterface.OnClickListener() {
+        (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(false);
+
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "No!", new DialogInterface.OnClickListener() {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -65,17 +71,18 @@ public class CrashHandler extends CrashListener {
                 timer.onFinish();
                 timer.cancel();
                 vibrator.cancel();
+                (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
             }
 
         });
 
         soundAlarm(context);
 
-        dialog = builder.show();
+        alertDialog.show();
     }
 
     private void closeDialog() {
-        dialog.dismiss();
+        alertDialog.dismiss();
     }
 
     private void soundAlarm(Context context) {
