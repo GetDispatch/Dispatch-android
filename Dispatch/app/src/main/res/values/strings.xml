@@ -7,4 +7,6 @@
     <string name="import_contacts">Import Contacts</string>
     <string name="message_to_send">Message To Send</string>
     <string name="save">Save</string>
+    <string name="stop">Save</string>
+    <string name="start">Start</string>
 </resources>

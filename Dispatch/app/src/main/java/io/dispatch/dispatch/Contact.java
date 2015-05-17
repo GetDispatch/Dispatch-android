@@ -1,9 +1,11 @@
 package io.dispatch.dispatch;
 
+import java.io.Serializable;
+
 /**
  * Created by Daniel on 5/16/2015.
  */
-public class Contact {
+public class Contact implements Serializable {
     private final String name;
     private final String number;
 
