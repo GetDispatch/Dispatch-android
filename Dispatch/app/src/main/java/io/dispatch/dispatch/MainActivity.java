@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,7 +17,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 public class MainActivity extends Activity {
@@ -35,8 +39,10 @@ public class MainActivity extends Activity {
         handleContacts();
         setupUI();
 
-        contacts.add(new Contact("Daniel Christopher", "7033623714"));
+        contacts.add(new Contact("7033623714"));
         crashHandler = new CrashHandler("If you got this text, my HackTJ app glitched. Sorry!", contacts);
+
+        ActivityManager.setActivity(this);
     }
 
     @Override
@@ -57,25 +63,42 @@ public class MainActivity extends Activity {
     }
 
     private void handleContacts() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        SharedPreferences cprefs = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
+        final Set<String> numbers = cprefs.getStringSet("contacts", new HashSet<String>());
 
-        builder.setTitle(R.string.import_contacts);
+        if(numbers.size() == 0) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                ContactImporter.importContacts(MainActivity.this);
-            }
-        });
+            builder.setTitle(R.string.import_contacts);
 
-        builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
+            builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 
-            }
-        });
+                public void onClick(DialogInterface dialog, int id) {
+                    SharedPreferences preferences = getSharedPreferences("contactPrefs.xml", MODE_PRIVATE);
 
-        AlertDialog dialog = builder.create();
+                    List<Contact> safe = ContactImporter.importContacts(MainActivity.this);
 
-        dialog.show();
+                    for(Contact contact : contacts) {
+                        numbers.add(contact.getNumber());
+                    }
+
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putStringSet("contacts", numbers);
+                    editor.apply();
+                }
+
+            });
+
+            builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    Toast.makeText(MainActivity.this, "Text Messages will not be sent without imported contacts", Toast.LENGTH_LONG);
+                }
+            });
+
+            AlertDialog dialog = builder.create();
+
+            dialog.show();
+        }
     }
 
     private void setupUI() {

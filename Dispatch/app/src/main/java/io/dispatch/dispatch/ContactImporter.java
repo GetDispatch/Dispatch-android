@@ -37,7 +37,7 @@ public class ContactImporter {
                     while (pCur.moveToNext()) {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-                        contacts.add(new Contact(name, phoneNo.replace(" ", "").replace("(", "").replace(")", "").replace("-", "")));
+                        contacts.add(new Contact(phoneNo.replace(" ", "").replace("(", "").replace(")", "").replace("-", "")));
                     }
 
                     pCur.close();
