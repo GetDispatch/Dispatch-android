@@ -10,6 +10,7 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -31,6 +32,7 @@ public class CrashHandler extends CrashListener {
     private AlertDialog alertDialog;
     private CountDownTimer timer;
     private Vibrator vibrator;
+    private AudioManager audioManager;
 
     public CrashHandler(final String message, final List<Contact> contacts) {
         super(message, contacts);
@@ -38,6 +40,8 @@ public class CrashHandler extends CrashListener {
 
     @Override
     public void onPossibleCrash(final CrashService service, Context context) {
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
         alertDialog = new AlertDialog.Builder(context).create();
 
         alertDialog.setTitle("Are you in an accident?");
@@ -56,6 +60,7 @@ public class CrashHandler extends CrashListener {
             public void onFinish() {
 //                service.startLocationListener();
                 (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
                 alertDialog.dismiss();
             }
 
@@ -72,6 +77,7 @@ public class CrashHandler extends CrashListener {
                 timer.cancel();
                 vibrator.cancel();
                 (((Button) ActivityManager.getActivity().findViewById(R.id.startButton))).setEnabled(true);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
             }
 
         });
@@ -86,6 +92,9 @@ public class CrashHandler extends CrashListener {
     }
 
     private void soundAlarm(Context context) {
+        // Use max volume
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
+
         final MediaPlayer mp = MediaPlayer.create(context, R.raw.alarm);
         mp.setLooping(true);
         mp.start();
