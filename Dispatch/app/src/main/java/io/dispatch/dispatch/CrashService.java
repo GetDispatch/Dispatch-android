@@ -72,7 +72,9 @@ public class CrashService extends Service {
 
                 currentSpeed = location.getSpeed();
                 Log.d("Change in velocity",currentSpeed-pastSpeed + "" );
-                if(currentSpeed - pastSpeed < -5) {
+                
+                // We have a crash, value should eventually become calculated
+                if(currentSpeed - pastSpeed < -13) {
                     listener.onPossibleCrash(CrashService.this, ActivityManager.getActivity());
 
                     // Send push
